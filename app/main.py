@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.plaid_manager import PlaidManager
-from app.schema import GetPlaidLinkTokenResponse
+from app.schema import GetPlaidLinkTokenResponse, GetPlaidAccountsResponse
 
 app = FastAPI()
 
@@ -27,6 +27,13 @@ def read_root() -> str:
 
 
 @app.get('/plaid-link-token')
-def read_plaid_link_token() -> GetPlaidLinkTokenResponse:
+def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
     link_token = plaid_manager.get_link_token()
     return GetPlaidLinkTokenResponse(plaid_link_token=link_token)
+
+
+@app.get('/accounts')
+def get_plaid_accounts(public_token: str) -> GetPlaidAccountsResponse:
+    access_token = plaid_manager.exchange_public_token(public_token)
+    accounts = plaid_manager.get_account_balances(access_token)
+    return GetPlaidAccountsResponse.from_plaid_accounts(accounts)
