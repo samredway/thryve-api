@@ -22,12 +22,12 @@ plaid_manager = PlaidManager()
 
 
 @app.get('/')
-def read_root() -> str:
+async def read_root() -> str:
     return "Server up!"
 
 
 @app.get('/plaid-link-token')
-def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
+async def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
     """
     Get link token used by FE for plaid link component
     """
@@ -47,7 +47,7 @@ def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
 # Later we will be able to use the access token to get other data from
 # plaid like transactions
 @app.get('/accounts')
-def get_plaid_accounts(public_token: str) -> GetPlaidAccountsResponse:
+async def get_plaid_accounts(public_token: str) -> GetPlaidAccountsResponse:
     access_token = plaid_manager.exchange_public_token(public_token)
     accounts = plaid_manager.get_account_balances(access_token)
     return GetPlaidAccountsResponse.from_plaid_accounts(accounts)
