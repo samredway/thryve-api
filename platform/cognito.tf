@@ -80,3 +80,21 @@ resource "aws_cognito_user_pool" "user_pool" {
     Environment = "development"
   }
 }
+
+resource "aws_cognito_user_pool_client" "user_pool_client" {
+  name                                 = "local-dev-enworth-user-pool-client"
+  user_pool_id                         = aws_cognito_user_pool.user_pool.id
+  callback_urls                        = ["http://localhost:3000/cognito-callback"]
+  allowed_oauth_flows_user_pool_client = true
+  allowed_oauth_flows                  = ["code", "implicit"]
+  allowed_oauth_scopes                 = ["email", "openid"]
+  supported_identity_providers         = ["COGNITO"]
+}
+
+output "user_pool_id" {
+  value = aws_cognito_user_pool.user_pool.id
+}
+
+output "user_pool_client_id" {
+  value = aws_cognito_user_pool_client.user_pool_client.id
+}
