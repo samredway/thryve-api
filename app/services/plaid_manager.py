@@ -13,6 +13,9 @@ from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest  
 
 
 class PlaidManager:
+    """
+    Singleton class to manage the Plaid API client
+    """
     client: plaid_api.PlaidApi = None
 
     def __init__(self) -> None:

@@ -1,5 +1,5 @@
 import pytest
-from app.plaid_manager import PlaidManager
+from app.services.plaid_manager import PlaidManager
 from plaid.model.account_base import AccountBase  # type: ignore
 
 
