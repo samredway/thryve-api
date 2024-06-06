@@ -30,3 +30,7 @@ def exchange_code_for_tokens(code: str) -> AuthTokens:
         refresh_token=tokens['refresh_token'],
         id_token=tokens['id_token'],
     )
+
+
+def create_http_only_cookie(token: str) -> str:
+    return f'access_token={token}; HttpOnly; SameSite=Strict'
