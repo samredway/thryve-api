@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.services.plaid_manager import PlaidManager
+from app.services.plaid.plaid_manager import PlaidManager
 from app.schemas.plaid import GetPlaidLinkTokenResponse, GetPlaidAccountsResponse
 
 

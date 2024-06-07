@@ -1,15 +1,18 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes.auth import router as auth_router
 from app.routes.plaid import router as plaid_router
 
+load_dotenv()
+URL_ROOT = os.environ.get('URL_ROOT')
+
 app = FastAPI()
 
-origins = [
-    "http://localhost:3000",
-]
-
+origins = [URL_ROOT]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
