@@ -5,10 +5,13 @@ from jose import jwt, jwk
 from jose.exceptions import JWTClaimsError
 from jose.utils import base64url_decode
 import requests
+from sqlalchemy.orm import Session
 
 from app.exceptions import ConfigurationError
+from app.repositories.user import get_user_by_email, create_user
 from app.services.auth.types_ import AuthTokens
 from app.services.auth.exceptions import AuthError
+from app.types_ import User
 
 cognito_domain = os.getenv('COGNITO_DOMAIN', '')
 cognito_client_id = os.getenv('COGNITO_CLIENT_ID', '')
@@ -16,7 +19,6 @@ cognito_redirect_uri = os.getenv('COGNITO_REDIRECT_URI', '')
 jwks_url = os.getenv('COGNITO_JWKS_URL', '')
 
 if not all([cognito_domain, cognito_client_id, cognito_redirect_uri, jwks_url]):
-    breakpoint()
     raise ConfigurationError('Missing required environment variables for Cognito')
 
 
@@ -66,3 +68,24 @@ def verify_token(token: str) -> dict[str, Any]:
         raise AuthError('Invalid token claims')
 
     return decoded_token
+
+
+def create_or_update_user_tokens(cognito_username: str, tokens: AuthTokens, session: Session) -> User:
+    id_token = decode_token(tokens.id_token)
+    email = id_token['email']
+
+    stmt = get_user_by_email(email)
+    user = session.execute(stmt).scalar()
+    if not user:
+        user = create_user(
+            email=email,
+            cognito_username=cognito_username,
+            refresh_token=tokens.refresh_token,
+        )
+    else:
+        user.refresh_token = tokens.refresh_token
+
+    session.add(user)
+    session.commit()
+
+    return User(email=email, username=user.username)

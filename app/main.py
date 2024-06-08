@@ -4,11 +4,19 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.database import engine
 from app.routes.auth import router as auth_router
 from app.routes.plaid import router as plaid_router
+from app.models.base import Base
+
+# import all models to create tables TODO: use alembic
+from app.models.user import User  # noqa: F401
+
+URL_ROOT = os.environ.get('URL_ROOT')
+
+Base.metadata.create_all(bind=engine)
 
 load_dotenv()
-URL_ROOT = os.environ.get('URL_ROOT')
 
 app = FastAPI()
 

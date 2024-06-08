@@ -1,12 +1,14 @@
+from dataclasses import asdict
+
 from fastapi import APIRouter, HTTPException
 import requests
 
-from app.schemas.auth import LoginPostRequest
+from app.dependencies import SessionDependency
+from app.schemas.auth import LoginPostRequest, LoginPostResponse
 from app.services.auth.auth import (
     exchange_code_for_tokens,
     verify_token,
-    decode_token,
-    #create_http_only_cookie,
+    create_or_update_user_tokens,
 )
 from app.services.auth.exceptions import AuthError
 
@@ -14,7 +16,7 @@ router = APIRouter(prefix='/auth', tags=['Auth'])
 
 
 @router.post('/login')
-def login(request_body: LoginPostRequest) -> None:
+async def login(request_body: LoginPostRequest, session: SessionDependency) -> LoginPostResponse:
     """
     Login swaps the code for a token by sending off to cognito.
 
@@ -36,15 +38,11 @@ def login(request_body: LoginPostRequest) -> None:
     except AuthError:
         raise HTTPException(status_code=403, detail='Failed to verify token')
 
-    id_token = decode_token(tokens.id_token)
-
-    username = access_token['username']
-    email = id_token['email']
-
-    print(username, email)
+    cognito_username = access_token['username']
 
     # create or update user in db with email and refresh token
+    user = create_or_update_user_tokens(cognito_username, tokens, session)
 
-    # cookie = create_http_only_cookie(tokens.access_token)
+    # TODO cookie = create_http_only_cookie(tokens.access_token)
     # return user object and set cookie
-    return
+    return LoginPostResponse.model_validate({'user': asdict(user)})
