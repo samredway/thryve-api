@@ -80,10 +80,10 @@ def create_or_update_user_tokens(cognito_username: str, tokens: AuthTokens, sess
         user = create_user(
             email=email,
             cognito_username=cognito_username,
-            refresh_token=tokens.refresh_token,
+            cognito_refresh_token=tokens.refresh_token,
         )
     else:
-        user.refresh_token = tokens.refresh_token
+        user.cognito_refresh_token = tokens.refresh_token
 
     session.add(user)
     session.commit()
