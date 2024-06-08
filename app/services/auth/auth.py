@@ -2,7 +2,7 @@ import os
 from typing import Any
 
 from jose import jwt, jwk
-from jose.exceptions import JWTClaimsError
+from jose.exceptions import JWTClaimsError, JWTError
 from jose.utils import base64url_decode
 import requests
 from sqlalchemy.orm import Session
@@ -45,6 +45,9 @@ def exchange_code_for_tokens(code: str) -> AuthTokens:
 
 
 def decode_token(token: str) -> dict[str, Any]:
+    """
+    Decode a JWT token without verifying its signature
+    """
     payload: dict[str, Any] = jwt.get_unverified_claims(token)
     return payload
 
@@ -52,7 +55,12 @@ def decode_token(token: str) -> dict[str, Any]:
 def verify_token(token: str) -> dict[str, Any]:
     response = requests.get(jwks_url)
     jwks: dict[str, Any] = response.json()
-    headers: dict[str, Any] = jwt.get_unverified_header(token)
+
+    try:
+        headers: dict[str, Any] = jwt.get_unverified_header(token)
+    except JWTError:
+        raise AuthError('Invalid token header')
+
     kid: str = headers['kid']
     key: dict[str, Any] = next(key for key in jwks['keys'] if key['kid'] == kid)
     public_key = jwk.construct(key)
