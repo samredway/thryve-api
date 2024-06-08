@@ -1,6 +1,6 @@
 from dataclasses import asdict
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 import requests
 
 from app.dependencies import SessionDependency
@@ -16,7 +16,11 @@ router = APIRouter(prefix='/auth', tags=['Auth'])
 
 
 @router.post('/login')
-async def login(request_body: LoginPostRequest, session: SessionDependency) -> LoginPostResponse:
+async def login(
+        request_body: LoginPostRequest,
+        session: SessionDependency,
+        response: Response,
+) -> LoginPostResponse:
     """
     Login swaps the code for a token by sending off to cognito.
 
@@ -40,9 +44,10 @@ async def login(request_body: LoginPostRequest, session: SessionDependency) -> L
 
     cognito_username = access_token['username']
 
-    # create or update user in db with email and refresh token
+    # create or update user in db with cognito username, email and refresh token
     user = create_or_update_user_tokens(cognito_username, tokens, session)
 
-    # TODO cookie = create_http_only_cookie(tokens.access_token)
-    # return user object and set cookie
+    # set the access token in an httpOnly cookie
+    response.set_cookie(key="access_token", value=tokens.access_token, httponly=True)
+
     return LoginPostResponse.model_validate({'user': asdict(user)})
