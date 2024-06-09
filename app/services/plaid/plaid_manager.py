@@ -1,7 +1,6 @@
 import os
 from typing import Any
 
-from dotenv import load_dotenv
 import plaid  # type: ignore
 from plaid.api import plaid_api  # type: ignore
 from plaid.model.link_token_create_request import LinkTokenCreateRequest  # type: ignore
@@ -13,6 +12,9 @@ from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest  
 
 
 class PlaidManager:
+    """
+    Singleton class to manage the Plaid API client
+    """
     client: plaid_api.PlaidApi = None
 
     def __init__(self) -> None:
@@ -22,7 +24,6 @@ class PlaidManager:
         if PlaidManager.client is not None:
             return
 
-        load_dotenv()
         client_id = os.getenv('PLAID_CLIENT_ID')
         secret = os.getenv('PLAID_SECRET')
 
