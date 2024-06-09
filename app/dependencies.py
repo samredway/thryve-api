@@ -1,14 +1,12 @@
 from typing import Generator, Any, Annotated
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 
 from app.services.auth.auth import verify_token
 from app.services.auth.exceptions import AuthError
 from app.database import SessionLocal
 
-security = HTTPBearer()
 
 InvalidTokenError = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
@@ -17,20 +15,10 @@ InvalidTokenError = HTTPException(
 )
 
 
-def get_session() -> Generator[Session, Any, Any]:
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
-
-
-SessionDependency = Annotated[Session, Depends(get_session)]
-
-
-def authorize(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
-    token = credentials.credentials.split(';')[0]
-    token = token[len('access_token='):]
+def authorize(request: Request) -> str:
+    token = request.cookies.get('access_token')
+    if not token:
+        raise InvalidTokenError
     try:
         payload = verify_token(token)
         if payload is None:
@@ -42,3 +30,14 @@ def authorize(credentials: HTTPAuthorizationCredentials = Depends(security)) -> 
 
 
 AuthorizedUserDependency = Annotated[str, Depends(authorize)]
+
+
+def get_session() -> Generator[Session, Any, Any]:
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
+SessionDependency = Annotated[Session, Depends(get_session)]
