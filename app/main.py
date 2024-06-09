@@ -12,7 +12,7 @@ from app.models.base import Base
 # import all models to create tables TODO: use alembic
 from app.models.user import User  # noqa: F401
 
-URL_ROOT = os.environ.get('URL_ROOT')
+CLIENT_DOMAIN = os.environ.get("CLIENT_DOMAIN")
 
 Base.metadata.create_all(bind=engine)
 
@@ -20,7 +20,7 @@ load_dotenv()
 
 app = FastAPI()
 
-origins = [URL_ROOT]
+origins = [CLIENT_DOMAIN]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -33,7 +33,7 @@ app.include_router(auth_router)
 app.include_router(plaid_router)
 
 
-@app.get('/')
+@app.get("/")
 async def read_root() -> str:
     """
     Check if the server is up

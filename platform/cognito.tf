@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "eu-west-1"  # Adjust the region as needed
+  region = "eu-west-1" # Adjust the region as needed
 }
 
 resource "aws_cognito_user_pool" "user_pool" {
@@ -7,11 +7,11 @@ resource "aws_cognito_user_pool" "user_pool" {
 
   # Password policy
   password_policy {
-    minimum_length    = 8
-    require_uppercase = true
-    require_lowercase = true
-    require_numbers   = true
-    require_symbols   = true
+    minimum_length                   = 8
+    require_uppercase                = true
+    require_lowercase                = true
+    require_numbers                  = true
+    require_symbols                  = true
     temporary_password_validity_days = 7
   }
 
@@ -40,7 +40,7 @@ resource "aws_cognito_user_pool" "user_pool" {
   }
 
   admin_create_user_config {
-    allow_admin_create_user_only     = false
+    allow_admin_create_user_only = false
   }
 
   username_configuration {
@@ -55,11 +55,11 @@ resource "aws_cognito_user_pool" "user_pool" {
   }
 
   schema {
-    name                  = "email"
-    attribute_data_type   = "String"
+    name                     = "email"
+    attribute_data_type      = "String"
     developer_only_attribute = false
-    mutable               = true
-    required              = true
+    mutable                  = true
+    required                 = true
     string_attribute_constraints {
       min_length = "0"
       max_length = "2048"
@@ -67,11 +67,11 @@ resource "aws_cognito_user_pool" "user_pool" {
   }
 
   schema {
-    name                  = "email_verified"
-    attribute_data_type   = "Boolean"
+    name                     = "email_verified"
+    attribute_data_type      = "Boolean"
     developer_only_attribute = false
-    mutable               = true
-    required              = false
+    mutable                  = true
+    required                 = false
   }
 
   # Add more properties and schema as needed based on your user pool configuration
@@ -84,7 +84,7 @@ resource "aws_cognito_user_pool" "user_pool" {
 resource "aws_cognito_user_pool_client" "user_pool_client" {
   name                                 = "local-dev-enworth-user-pool-client"
   user_pool_id                         = aws_cognito_user_pool.user_pool.id
-  callback_urls                        = ["http://localhost:3000/auth-callback"]
+  callback_urls                        = ["http://localhost:5173/auth-callback"]
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code", "implicit"]
   allowed_oauth_scopes                 = ["email", "openid"]
