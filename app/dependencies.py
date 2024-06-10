@@ -16,7 +16,7 @@ InvalidTokenError = HTTPException(
 
 
 def authorize(request: Request) -> str:
-    token = request.cookies.get('access_token')
+    token = request.cookies.get("access_token")
     if not token:
         raise InvalidTokenError
     try:
@@ -25,7 +25,7 @@ def authorize(request: Request) -> str:
             raise InvalidTokenError
     except AuthError:
         raise InvalidTokenError
-    cognito_username: str = payload['username']
+    cognito_username: str = payload["username"]
     return cognito_username
 
 
