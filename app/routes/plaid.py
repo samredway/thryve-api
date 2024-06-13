@@ -10,13 +10,15 @@ from app.schemas.plaid import (
 from app.services.plaid.exceptions import InvalidAccessTokenError
 from app.services.plaid.plaid_manager import PlaidManager
 
-router = APIRouter(prefix="/plaid", tags=["plaid"])
+router = APIRouter(prefix="/plaid", tags=["Plaid"])
 
 plaid_manager = PlaidManager()
 
 
 @router.get("/link-token")
-def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
+def get_plaid_link_token(
+    cognito_id: AuthorizedUserDependency,
+) -> GetPlaidLinkTokenResponse:
     """
     Get link token used by FE for plaid link component
     """

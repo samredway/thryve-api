@@ -21,6 +21,7 @@ load_dotenv()
 app = FastAPI()
 
 origins = [CLIENT_DOMAIN]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
