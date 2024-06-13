@@ -144,3 +144,7 @@ class GetPlaidAccountsResponse(BaseModel):
             for account in accounts
         ]
         return cls(accounts=accounts)
+
+
+class PlaidPublicTokenExchangePostRequest(BaseModel):
+    public_token: str

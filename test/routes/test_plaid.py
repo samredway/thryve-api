@@ -24,7 +24,9 @@ def test_exchange_public_token(
     Test the access token gets saved to the user
     """
     mock_exchange_public_token.return_value = "New access token"
-    response = client.get("/plaid/exchange-public-token?public_token=blah")
+    response = client.post(
+        "/plaid/exchange-public-token", json={"public_token": "New access token"}
+    )
     assert response.status_code == 204
     session.get(User, authorized_user.id)
     assert authorized_user.plaid_access_token == "New access token"

@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from app.dependencies import AuthorizedUserDependency, SessionDependency
 from app.repositories.user import get_user_by_cognito_id
 from app.schemas.plaid import (
+    PlaidPublicTokenExchangePostRequest,
     GetPlaidAccountsResponse,
     GetPlaidLinkTokenResponse,
 )
@@ -23,13 +24,13 @@ def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
     return GetPlaidLinkTokenResponse(plaid_link_token=link_token)
 
 
-@router.get("/exchange-public-token", status_code=204)
+@router.post("/exchange-public-token", status_code=204)
 def exchange_public_token(
-    public_token: str,
+    request_body: PlaidPublicTokenExchangePostRequest,
     cognito_id: AuthorizedUserDependency,
     session: SessionDependency,
 ) -> None:
-    access_token = plaid_manager.exchange_public_token(public_token)
+    access_token = plaid_manager.exchange_public_token(request_body.public_token)
     stmt = get_user_by_cognito_id(cognito_id)
     user = session.execute(stmt).scalar_one()
     user.plaid_access_token = access_token
