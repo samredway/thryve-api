@@ -18,8 +18,8 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 @router.post("/login")
 async def login(
     request_body: LoginPostRequest,
-    session: SessionDependency,
     response: Response,
+    session: SessionDependency,
 ) -> LoginPostResponse:
     """
     Login swaps the code for a token by sending off to cognito.
@@ -44,10 +44,10 @@ async def login(
     except AuthError:
         raise HTTPException(status_code=403, detail="Failed to verify token")
 
-    cognito_username = access_token["username"]
+    cognito_id = access_token["username"]
 
     # create or update user in db with cognito username, email and refresh token
-    user = create_or_update_user_tokens(cognito_username, tokens, session)
+    user = create_or_update_user_tokens(cognito_id, tokens, session)
 
     # set the access token as authorization header
     # response.headers['Authorization'] = f'Bearer {tokens.access_token}'

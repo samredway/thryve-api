@@ -13,34 +13,32 @@ from app.services.auth.types_ import AuthTokens
 from app.services.auth.exceptions import AuthError
 from app.types_ import User
 
-cognito_domain = os.getenv('COGNITO_DOMAIN', '')
-cognito_client_id = os.getenv('COGNITO_CLIENT_ID', '')
-cognito_redirect_uri = os.getenv('COGNITO_REDIRECT_URI', '')
-jwks_url = os.getenv('COGNITO_JWKS_URL', '')
+cognito_domain = os.getenv("COGNITO_DOMAIN", "")
+cognito_client_id = os.getenv("COGNITO_CLIENT_ID", "")
+cognito_redirect_uri = os.getenv("COGNITO_REDIRECT_URI", "")
+jwks_url = os.getenv("COGNITO_JWKS_URL", "")
 
 if not all([cognito_domain, cognito_client_id, cognito_redirect_uri, jwks_url]):
-    raise ConfigurationError('Missing required environment variables for Cognito')
+    raise ConfigurationError("Missing required environment variables for Cognito")
 
 
 def exchange_code_for_tokens(code: str) -> AuthTokens:
     response = requests.post(
-        cognito_domain + '/oauth2/token',
+        cognito_domain + "/oauth2/token",
         data={
-            'grant_type': 'authorization_code',
-            'client_id': cognito_client_id,
-            'code': code,
-            'redirect_uri': cognito_redirect_uri,
+            "grant_type": "authorization_code",
+            "client_id": cognito_client_id,
+            "code": code,
+            "redirect_uri": cognito_redirect_uri,
         },
-        headers={
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
     response.raise_for_status()
     tokens = response.json()
     return AuthTokens(
-        access_token=tokens['access_token'],
-        refresh_token=tokens['refresh_token'],
-        id_token=tokens['id_token'],
+        access_token=tokens["access_token"],
+        refresh_token=tokens["refresh_token"],
+        id_token=tokens["id_token"],
     )
 
 
@@ -59,41 +57,45 @@ def verify_token(token: str) -> dict[str, Any]:
     try:
         headers: dict[str, Any] = jwt.get_unverified_header(token)
     except JWTError:
-        raise AuthError('Invalid token header')
+        raise AuthError("Invalid token header")
 
-    kid: str = headers['kid']
-    key: dict[str, Any] = next(key for key in jwks['keys'] if key['kid'] == kid)
+    kid: str = headers["kid"]
+    key: dict[str, Any] = next(key for key in jwks["keys"] if key["kid"] == kid)
     public_key = jwk.construct(key)
-    message, encoded_signature = token.rsplit('.', 1)
-    decoded_signature = base64url_decode(encoded_signature.encode('utf-8'))
+    message, encoded_signature = token.rsplit(".", 1)
+    decoded_signature = base64url_decode(encoded_signature.encode("utf-8"))
 
-    if not public_key.verify(message.encode('utf-8'), decoded_signature):
-        raise AuthError('Invalid token signature')
+    if not public_key.verify(message.encode("utf-8"), decoded_signature):
+        raise AuthError("Invalid token signature")
 
     try:
-        decoded_token = jwt.decode(token, public_key, algorithms=['RS256'], audience=cognito_client_id)
+        decoded_token = jwt.decode(
+            token, public_key, algorithms=["RS256"], audience=cognito_client_id
+        )
     except JWTClaimsError:
-        raise AuthError('Invalid token claims')
+        raise AuthError("Invalid token claims")
 
     return decoded_token
 
 
-def create_or_update_user_tokens(cognito_username: str, tokens: AuthTokens, session: Session) -> User:
+def create_or_update_user_tokens(
+    cognito_id: str, tokens: AuthTokens, session: Session
+) -> User:
     id_token = decode_token(tokens.id_token)
-    email = id_token['email']
+    email = id_token["email"]
 
     stmt = get_user_by_email(email)
     user = session.execute(stmt).scalar()
     if not user:
         user = create_user(
             email=email,
-            cognito_username=cognito_username,
+            cognito_id=cognito_id,
             cognito_refresh_token=tokens.refresh_token,
         )
+        session.add(user)
     else:
         user.cognito_refresh_token = tokens.refresh_token
 
-    session.add(user)
     session.commit()
 
-    return User(email=email, username=user.username)
+    return User(id=user.id, email=email)
