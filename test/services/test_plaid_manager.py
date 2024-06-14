@@ -14,11 +14,11 @@ def test_token_retrieval(plaid_manager: PlaidManager) -> None:
 
 
 def test_get_account_balances(
-        plaid_manager: PlaidManager,
-        access_token: str,
-        test_balances: list[AccountBase],
+    plaid_manager: PlaidManager,
+    plaid_access_token: str,
+    test_balances: list[AccountBase],
 ) -> None:
-    balances = plaid_manager.get_account_balances(access_token)
+    balances = plaid_manager.get_account_balances(plaid_access_token)
     for balance in balances:
         assert isinstance(balance, AccountBase)
         assert balance == test_balances.pop(0)

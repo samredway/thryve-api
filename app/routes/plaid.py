@@ -1,16 +1,24 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
+from app.dependencies import AuthorizedUserDependency, SessionDependency
+from app.repositories.user import get_user_by_cognito_id
+from app.schemas.plaid import (
+    PlaidPublicTokenExchangePostRequest,
+    GetPlaidAccountsResponse,
+    GetPlaidLinkTokenResponse,
+)
+from app.services.plaid.exceptions import InvalidAccessTokenError
 from app.services.plaid.plaid_manager import PlaidManager
-from app.schemas.plaid import GetPlaidLinkTokenResponse, GetPlaidAccountsResponse
 
-
-router = APIRouter(prefix="/plaid", tags=["plaid"])
+router = APIRouter(prefix="/plaid", tags=["Plaid"])
 
 plaid_manager = PlaidManager()
 
 
 @router.get("/link-token")
-def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
+def get_plaid_link_token(
+    cognito_id: AuthorizedUserDependency,
+) -> GetPlaidLinkTokenResponse:
     """
     Get link token used by FE for plaid link component
     """
@@ -18,19 +26,33 @@ def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
     return GetPlaidLinkTokenResponse(plaid_link_token=link_token)
 
 
-# TODO: This endpoint is doing too much.
-# This needs to be broken into two endpoints.
-# One: to exchange the public token for an access token which must be
-# stored against the user in the database.
-# Two: get account balances using the saved access token for the logged
-# in user.
-# The benefit of breaking it up is that then the access token can be
-# re-used without forcing the user to relink to plaid for a new public
-# token each time they request account balances.
-# Later we will be able to use the access token to get other data from
-# plaid like transactions
+@router.post("/exchange-public-token", status_code=204)
+def exchange_public_token(
+    request_body: PlaidPublicTokenExchangePostRequest,
+    cognito_id: AuthorizedUserDependency,
+    session: SessionDependency,
+) -> None:
+    access_token = plaid_manager.exchange_public_token(request_body.public_token)
+    stmt = get_user_by_cognito_id(cognito_id)
+    user = session.execute(stmt).scalar_one()
+    user.plaid_access_token = access_token
+    session.commit()
+    return None
+
+
 @router.get("/accounts")
-def get_plaid_accounts(public_token: str) -> GetPlaidAccountsResponse:
-    access_token = plaid_manager.exchange_public_token(public_token)
-    accounts = plaid_manager.get_account_balances(access_token)
-    return GetPlaidAccountsResponse.from_plaid_accounts(accounts)
+def get_plaid_account_balances(
+    cognito_id: AuthorizedUserDependency, session: SessionDependency
+) -> GetPlaidAccountsResponse:
+    """
+    Get plaid accounts for the logged in user
+    """
+    stmt = get_user_by_cognito_id(cognito_id)
+    user = session.execute(stmt).scalar_one()
+    if not user or not user.plaid_access_token:
+        raise HTTPException(status_code=403, detail="No plaid access token")
+    try:
+        accounts = plaid_manager.get_account_balances(user.plaid_access_token)
+    except InvalidAccessTokenError:
+        raise HTTPException(status_code=403, detail="Invalid plaid access token")
+    return GetPlaidAccountsResponse.from_plaid_accounts(accounts=accounts)
