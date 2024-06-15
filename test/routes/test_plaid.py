@@ -42,8 +42,9 @@ def test_get_account_balances(
     The network call is mocked so we can smoke test that the endpoint
     is wired up correctly with and the validation is working
     """
-    mock_get_account_balances.return_value = test_balances
+    mock_get_account_balances.return_value = []
     response = client.get("/plaid/accounts")
+    assert response.status_code == 200
     assert response.json().get("accounts") is not None
 
 

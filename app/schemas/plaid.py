@@ -2,11 +2,8 @@ from decimal import Decimal
 from enum import Enum
 from typing import Optional
 
+from plaid.model.account_balance import AccountBalance  # type: ignore
 from pydantic import BaseModel
-
-
-class GetPlaidLinkTokenResponse(BaseModel):
-    plaid_link_token: str
 
 
 class IsoCurrencyCode(str, Enum):
@@ -117,33 +114,34 @@ class PlaidAccount(BaseModel):
     subtype: PlaidAccountSubType
     type: PlaidAccountType
 
+    @classmethod
+    def from_plaid_account_balance_raw(cls, account: AccountBalance) -> "PlaidAccount":
+        return cls(
+            account_id=account.account_id,
+            balances=PlaidAccountBalance(
+                available=account.balances.available,
+                current=account.balances.current,
+                iso_currency_code=account.balances.iso_currency_code,
+                limit=account.balances.limit,
+                unofficial_currency_code=account.balances.unofficial_currency_code,
+            ),
+            mask=account.mask,
+            name=account.name,
+            official_name=account.official_name,
+            subtype=PlaidAccountSubType(str(account.subtype)),
+            type=PlaidAccountType(str(account.type)),
+        )
+
+
+# Responses and requests
+
+
+class GetPlaidLinkTokenResponse(BaseModel):
+    plaid_link_token: str
+
 
 class GetPlaidAccountsResponse(BaseModel):
     accounts: list[PlaidAccount]
-
-    @classmethod
-    def from_plaid_accounts(
-        cls, accounts: list[PlaidAccount]
-    ) -> "GetPlaidAccountsResponse":
-        accounts = [
-            PlaidAccount(
-                account_id=account.account_id,
-                balances=PlaidAccountBalance(
-                    available=account.balances.available,
-                    current=account.balances.current,
-                    iso_currency_code=account.balances.iso_currency_code,
-                    limit=account.balances.limit,
-                    unofficial_currency_code=account.balances.unofficial_currency_code,
-                ),
-                mask=account.mask,
-                name=account.name,
-                official_name=account.official_name,
-                subtype=PlaidAccountSubType(str(account.subtype)),
-                type=PlaidAccountType(str(account.type)),
-            )
-            for account in accounts
-        ]
-        return cls(accounts=accounts)
 
 
 class PlaidPublicTokenExchangePostRequest(BaseModel):

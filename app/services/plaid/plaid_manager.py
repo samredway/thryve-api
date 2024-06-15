@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Any
 
 import plaid  # type: ignore
 from plaid.api import plaid_api  # type: ignore
@@ -11,7 +10,8 @@ from plaid.model.country_code import CountryCode  # type: ignore
 from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchangeRequest  # type: ignore
 from plaid.model.accounts_balance_get_request import AccountsBalanceGetRequest  # type: ignore
 
-from app.services.plaid.exceptions import InvalidAccessTokenError
+from app.schemas.plaid import PlaidAccount
+from app.services.plaid.exceptions import InvalidAccessTokenError, PlaidError
 
 
 class PlaidManager:
@@ -57,12 +57,14 @@ class PlaidManager:
         response: dict[str, str] = PlaidManager.client.link_token_create(request)
         return response["link_token"]
 
-    def exchange_public_token(self, public_token: str) -> Any:
+    def exchange_public_token(self, public_token: str) -> str:
         request = ItemPublicTokenExchangeRequest(public_token=public_token)
         response = PlaidManager.client.item_public_token_exchange(request)
-        return response["access_token"]
+        if not isinstance(access_token := response.get("access_token"), str):
+            raise PlaidError("Access token not found in Plaid response")
+        return access_token
 
-    def get_account_balances(self, access_token: str) -> Any:
+    def get_account_balances(self, access_token: str) -> list[PlaidAccount]:
         request = AccountsBalanceGetRequest(access_token=access_token)
         try:
             response = PlaidManager.client.accounts_balance_get(request)
@@ -70,4 +72,10 @@ class PlaidManager:
             body = json.loads(e.body)
             if body.get("error_code") == "INVALID_ACCESS_TOKEN":
                 raise InvalidAccessTokenError()
-        return response["accounts"]
+        accounts = response["accounts"]
+        return [
+            # Note using the external schema class internally here to avoid
+            # duplication by creating an internal dataclass model
+            PlaidAccount.from_plaid_account_balance_raw(account)
+            for account in accounts
+        ]

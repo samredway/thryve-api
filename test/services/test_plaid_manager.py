@@ -1,6 +1,9 @@
-import pytest
-from app.services.plaid.plaid_manager import PlaidManager
 from plaid.model.account_base import AccountBase  # type: ignore
+
+import pytest
+
+from app.schemas.plaid import PlaidAccount
+from app.services.plaid.plaid_manager import PlaidManager
 
 
 @pytest.fixture
@@ -20,5 +23,7 @@ def test_get_account_balances(
 ) -> None:
     balances = plaid_manager.get_account_balances(plaid_access_token)
     for balance in balances:
-        assert isinstance(balance, AccountBase)
-        assert balance == test_balances.pop(0)
+        assert isinstance(balance, PlaidAccount)
+        assert balance == PlaidAccount.from_plaid_account_balance_raw(
+            test_balances.pop(0)
+        )

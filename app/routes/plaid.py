@@ -55,4 +55,4 @@ def get_plaid_account_balances(
         accounts = plaid_manager.get_account_balances(user.plaid_access_token)
     except InvalidAccessTokenError:
         raise HTTPException(status_code=403, detail="Invalid plaid access token")
-    return GetPlaidAccountsResponse.from_plaid_accounts(accounts=accounts)
+    return GetPlaidAccountsResponse(accounts=accounts)
