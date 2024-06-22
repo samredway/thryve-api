@@ -1,0 +1,19 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0  # Use the latest stable version
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.9.2  # Use the latest stable version
+    hooks:
+      - id: flake8
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run pytest on ./test/
+        entry: pytest ./test/
+        language: system
+        types: [python]
