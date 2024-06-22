@@ -7,10 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine
 from app.routes.auth import router as auth_router
 from app.routes.plaid import router as plaid_router
+from app.routes.assets import router as assets_router
 from app.models.base import Base
 
 # import all models to create tables TODO: use alembic
 from app.models.user import User  # noqa: F401
+from app.models.asset import Asset  # noqa: F401
 
 CLIENT_DOMAIN = os.environ.get("CLIENT_DOMAIN")
 
@@ -32,10 +34,11 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(plaid_router)
+app.include_router(assets_router)
 
 
 @app.get("/")
-async def read_root() -> str:
+def read_root() -> str:
     """
     Check if the server is up
     """

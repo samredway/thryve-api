@@ -16,7 +16,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/login")
-async def login(
+def login(
     request_body: LoginPostRequest,
     response: Response,
     session: SessionDependency,

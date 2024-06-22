@@ -3,17 +3,17 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
-from plaid.model.account_base import AccountBase  # type: ignore
 from plaid.model.account_balance import AccountBalance  # type: ignore
-from plaid.model.account_type import AccountType  # type: ignore
+from plaid.model.account_base import AccountBase  # type: ignore
 from plaid.model.account_subtype import AccountSubtype  # type: ignore
+from plaid.model.account_type import AccountType  # type: ignore
 from sqlalchemy.orm import Session
 
 from app.dependencies import authorize, get_session
 from app.main import app
+from app.models.asset import Asset
 from app.models.user import User
 from app.repositories.user import get_user_by_cognito_id
-
 
 AUTHORIZED_USER_COGNITO_ID = str(uuid4())
 
@@ -123,3 +123,17 @@ def test_balances() -> list[AccountBase]:
             type=AccountType("loan"),
         ),
     ]
+
+
+@pytest.fixture
+def asset(session: Session, authorized_user: User) -> Asset:
+    name = str(uuid4())
+    asset: Asset = Asset(
+        user_id=authorized_user.id,
+        name=name,
+        type="test",
+        value=100,
+    )
+    session.add(asset)
+    session.commit()
+    return asset
