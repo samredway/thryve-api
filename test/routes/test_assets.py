@@ -5,10 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.asset import Asset
-from app.models.user import User
 
 
-def test_get_assets(client: TestClient, asset: Asset, authorized_user: User) -> None:
+def test_get_assets(client: TestClient, asset: Asset) -> None:
     response = client.get("/assets")
     assert response.status_code == 200
     assert response.json().get("assets") is not None
