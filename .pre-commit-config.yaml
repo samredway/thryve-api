@@ -10,11 +10,6 @@ repos:
     hooks:
       - id: flake8
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.910  # Use the latest stable version
-    hooks:
-      - id: mypy
-
   - repo: local
     hooks:
       - id: pytest

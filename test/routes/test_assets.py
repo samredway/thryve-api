@@ -8,7 +8,7 @@ from app.models.asset import Asset
 
 
 def test_get_assets(client: TestClient, asset: Asset) -> None:
-    response = client.get("/assets")
+    response = client.get("/assets/assets")
     assert response.status_code == 200
     assert response.json().get("assets") is not None
     assert response.json().get("assets")[0].get("name") == asset.name
@@ -16,7 +16,9 @@ def test_get_assets(client: TestClient, asset: Asset) -> None:
 
 def test_post_asset(client: TestClient, session: Session) -> None:
     name = str(uuid4())
-    response = client.post("/assets", json={"type": "test", "name": name, "value": 200})
+    response = client.post(
+        "/assets/asset", json={"type": "test", "name": name, "value": 200}
+    )
     assert response.status_code == 200, response.text
     assert response.json().get("name") == name
 
@@ -28,7 +30,8 @@ def test_post_asset(client: TestClient, session: Session) -> None:
 def test_update_asset(client: TestClient, asset: Asset) -> None:
     new_name = str(uuid4())
     response = client.put(
-        f"/assets/{asset.id}", json={"type": "test", "name": new_name, "value": 200}
+        f"/assets/asset/{asset.id}",
+        json={"type": "test", "name": new_name, "value": 200},
     )
     assert response.status_code == 200, response.text
     assert response.json().get("name") == new_name

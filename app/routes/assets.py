@@ -11,10 +11,10 @@ from app.models.user import User
 from app.repositories.asset import create_asset, select_asset_for_update
 from app.repositories.user import get_user_by_cognito_id
 
-router = APIRouter(prefix="/assets", tags=["Auth"])
+router = APIRouter(prefix="/assets", tags=["Assets"])
 
 
-@router.get("/")
+@router.get("/assets")
 def get_assets(
     cognito_id: AuthorizedUserDependency, session: SessionDependency
 ) -> GetAssetsResponse:
@@ -25,7 +25,7 @@ def get_assets(
     )
 
 
-@router.post("/")
+@router.post("/asset")
 def post_asset(
     cognito_id: AuthorizedUserDependency,
     session: SessionDependency,
@@ -44,7 +44,7 @@ def post_asset(
     return Asset.model_validate(asset)
 
 
-@router.put("/{asset_id}")
+@router.put("/asset/{asset_id}")
 def update_asset(
     request: UpdateAssetRequest,
     session: SessionDependency,
