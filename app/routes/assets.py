@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.dependencies import AuthorizedUserDependency, SessionDependency
 from app.schemas.assets import (
@@ -42,6 +42,19 @@ def post_asset(
     session.add(asset)
     session.commit()
     return Asset.model_validate(asset)
+
+
+@router.delete("/asset/{asset_id}")
+def delete_asset(
+    session: SessionDependency,
+    asset_id: int,
+) -> None:
+    stmt = select_asset_for_update(asset_id=asset_id)
+    asset = session.execute(stmt).scalar_one_or_none()
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    session.delete(asset)
+    session.commit()
 
 
 @router.put("/asset/{asset_id}")

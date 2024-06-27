@@ -35,3 +35,18 @@ def test_update_asset(client: TestClient, asset: Asset) -> None:
     )
     assert response.status_code == 200, response.text
     assert response.json().get("name") == new_name
+
+
+def test_delete_asset(client: TestClient, asset: Asset, session: Session) -> None:
+    response = client.delete(f"/assets/asset/{asset.id}")
+    assert response.status_code == 200, response.text
+
+    stmt = select(Asset).where(Asset.id == asset.id)
+    test_asset = session.execute(stmt).scalars().first()
+    assert test_asset is None
+
+
+def test_delete_asset_not_found(client: TestClient, asset: Asset) -> None:
+    response = client.delete(f"/assets/asset/{asset.id + 10}")
+    assert response.status_code == 404
+    assert response.json().get("detail") == "Asset not found"
