@@ -46,6 +46,7 @@ def post_asset(
 
 @router.delete("/asset/{asset_id}")
 def delete_asset(
+    cognito_id: AuthorizedUserDependency,
     session: SessionDependency,
     asset_id: int,
 ) -> None:
@@ -59,6 +60,7 @@ def delete_asset(
 
 @router.put("/asset/{asset_id}")
 def update_asset(
+    cognito_id: AuthorizedUserDependency,
     request: UpdateAssetRequest,
     session: SessionDependency,
     asset_id: int,
