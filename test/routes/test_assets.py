@@ -17,7 +17,7 @@ def test_get_assets(client: TestClient, asset: Asset) -> None:
 def test_post_asset(client: TestClient, session: Session) -> None:
     name = str(uuid4())
     response = client.post(
-        "/assets/asset", json={"type": "test", "name": name, "value": 200}
+        "/assets/asset", json={"type": "other", "name": name, "value": 200}
     )
     assert response.status_code == 200, response.text
     assert response.json().get("name") == name
@@ -31,7 +31,7 @@ def test_update_asset(client: TestClient, asset: Asset) -> None:
     new_name = str(uuid4())
     response = client.put(
         f"/assets/asset/{asset.id}",
-        json={"type": "test", "name": new_name, "value": 200},
+        json={"type": "other", "name": new_name, "value": 200},
     )
     assert response.status_code == 200, response.text
     assert response.json().get("name") == new_name

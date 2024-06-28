@@ -131,7 +131,7 @@ def asset(session: Session, authorized_user: User) -> Asset:
     asset: Asset = Asset(
         user_id=authorized_user.id,
         name=name,
-        type="test",
+        type="other",
         value=100,
     )
     session.add(asset)
