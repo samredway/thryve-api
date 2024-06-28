@@ -14,22 +14,23 @@ class AssetType(StrEnum):
     other = "other"
 
 
-class Asset(BaseSchema):
-    id: int
+class AssetBase(BaseSchema):
     name: str = Field(..., min_length=1, max_length=64)
     type: AssetType
     value: Decimal = Field(..., gt=0)
+
+
+class Asset(AssetBase):
+    id: int
 
 
 class GetAssetsResponse(BaseSchema):
     assets: list[Asset]
 
 
-class PostAssetRequest(BaseSchema):
-    type: str
-    name: str
-    value: Decimal
+class PostAssetRequest(AssetBase):
+    pass
 
 
-class UpdateAssetRequest(PostAssetRequest):
+class UpdateAssetRequest(AssetBase):
     pass
