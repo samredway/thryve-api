@@ -58,6 +58,15 @@ def login(
     return LoginPostResponse.model_validate({"user": asdict(user)})
 
 
+@router.post("/logout", status_code=204)
+def logout(response: Response) -> None:
+    """
+    Logout clears the access token cookie
+    """
+    response.delete_cookie("access_token")
+    return
+
+
 @router.get("/me")
 def get_me(user_id: AuthorizedUserDependency) -> dict[str, str]:
     """
