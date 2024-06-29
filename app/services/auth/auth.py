@@ -2,7 +2,7 @@ import os
 from typing import Any
 
 from jose import jwt, jwk
-from jose.exceptions import JWTClaimsError, JWTError
+from jose.exceptions import JWTClaimsError, JWTError, ExpiredSignatureError
 from jose.utils import base64url_decode
 import requests
 from sqlalchemy.orm import Session
@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.exceptions import ConfigurationError
 from app.repositories.user import get_user_by_email, create_user
 from app.services.auth.types_ import AuthTokens
-from app.services.auth.exceptions import AuthError
+from app.services.auth.exceptions import AuthError, ExpiredTokenError
 from app.types_ import User
 
 cognito_domain = os.getenv("COGNITO_DOMAIN", "")
@@ -74,6 +74,8 @@ def verify_token(token: str) -> dict[str, Any]:
         )
     except JWTClaimsError:
         raise AuthError("Invalid token claims")
+    except ExpiredSignatureError:
+        raise ExpiredTokenError("Token is expired")
 
     return decoded_token
 
@@ -101,7 +103,7 @@ def create_or_update_user_tokens(
     return User(id=user.id, email=email)
 
 
-def refresh_token(refresh_token: str) -> AuthTokens:
+def refresh_token(refresh_token: str) -> str:
     response = requests.post(
         cognito_domain + "/oauth2/token",
         data={
@@ -113,8 +115,5 @@ def refresh_token(refresh_token: str) -> AuthTokens:
     )
     response.raise_for_status()
     tokens = response.json()
-    return AuthTokens(
-        access_token=tokens["access_token"],
-        refresh_token=tokens["refresh_token"],
-        id_token=tokens["id_token"],
-    )
+    access_token: str = tokens["access_token"]
+    return access_token
