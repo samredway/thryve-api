@@ -99,3 +99,22 @@ def create_or_update_user_tokens(
     session.commit()
 
     return User(id=user.id, email=email)
+
+
+def refresh_token(refresh_token: str) -> AuthTokens:
+    response = requests.post(
+        cognito_domain + "/oauth2/token",
+        data={
+            "grant_type": "refresh_token",
+            "client_id": cognito_client_id,
+            "refresh_token": refresh_token,
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    response.raise_for_status()
+    tokens = response.json()
+    return AuthTokens(
+        access_token=tokens["access_token"],
+        refresh_token=tokens["refresh_token"],
+        id_token=tokens["id_token"],
+    )
