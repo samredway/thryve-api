@@ -49,9 +49,6 @@ def login(
     # create or update user in db with cognito username, email and refresh token
     user = create_or_update_user_tokens(cognito_id, tokens, session)
 
-    # set the access token as authorization header
-    # response.headers['Authorization'] = f'Bearer {tokens.access_token}'
-
     # set the access token as an httpOnly cookie
     response.set_cookie(key="access_token", value=tokens.access_token, httponly=True)
 
