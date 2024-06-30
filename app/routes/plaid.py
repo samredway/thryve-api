@@ -1,24 +1,22 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
-from app.dependencies import AuthorizedUserDependency, SessionDependency
+from app.dependencies import AuthorizedUserDependency, SessionDependency, authorize
 from app.repositories.user import get_user_by_cognito_id
 from app.schemas.plaid import (
-    PlaidPublicTokenExchangePostRequest,
     GetPlaidAccountsResponse,
     GetPlaidLinkTokenResponse,
+    PlaidPublicTokenExchangePostRequest,
 )
 from app.services.plaid.exceptions import InvalidAccessTokenError
 from app.services.plaid.plaid_manager import PlaidManager
 
-router = APIRouter(prefix="/plaid", tags=["Plaid"])
+router = APIRouter(prefix="/plaid", tags=["Plaid"], dependencies=[Depends(authorize)])
 
 plaid_manager = PlaidManager()
 
 
 @router.get("/link-token")
-def get_plaid_link_token(
-    cognito_id: AuthorizedUserDependency,
-) -> GetPlaidLinkTokenResponse:
+def get_plaid_link_token() -> GetPlaidLinkTokenResponse:
     """
     Get link token used by FE for plaid link component
     """

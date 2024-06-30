@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
-from app.dependencies import AuthorizedUserDependency, SessionDependency
+from app.dependencies import AuthorizedUserDependency, SessionDependency, authorize
 from app.schemas.assets import (
     GetAssetsResponse,
     Asset,
@@ -11,7 +11,7 @@ from app.models.user import User
 from app.repositories.asset import create_asset, select_asset_for_update
 from app.repositories.user import get_user_by_cognito_id
 
-router = APIRouter(prefix="/assets", tags=["Assets"])
+router = APIRouter(prefix="/assets", tags=["Assets"], dependencies=[Depends(authorize)])
 
 
 @router.get("/assets")
@@ -46,7 +46,6 @@ def post_asset(
 
 @router.delete("/asset/{asset_id}")
 def delete_asset(
-    cognito_id: AuthorizedUserDependency,
     session: SessionDependency,
     asset_id: int,
 ) -> None:
@@ -60,7 +59,6 @@ def delete_asset(
 
 @router.put("/asset/{asset_id}")
 def update_asset(
-    cognito_id: AuthorizedUserDependency,
     request: UpdateAssetRequest,
     session: SessionDependency,
     asset_id: int,

@@ -13,10 +13,6 @@ from app.services.auth.auth import (
 )
 from app.services.auth.exceptions import AuthError
 
-import logging
-
-logger = logging.getLogger("uvicorn.error")
-
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
