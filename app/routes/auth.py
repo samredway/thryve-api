@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Response
 import requests
 
 from app.dependencies import AuthorizedUserDependency, SessionDependency
+from app.repositories.user import get_user_by_cognito_id
 from app.schemas.auth import LoginPostRequest, LoginPostResponse
 from app.services.auth.auth import (
     exchange_code_for_tokens,
@@ -11,6 +12,10 @@ from app.services.auth.auth import (
     create_or_update_user_tokens,
 )
 from app.services.auth.exceptions import AuthError
+
+import logging
+
+logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -56,12 +61,23 @@ def login(
 
 
 @router.post("/logout", status_code=204)
-def logout(response: Response) -> None:
+def logout(
+    response: Response,
+    cognito_id: AuthorizedUserDependency,
+    session: SessionDependency,
+) -> None:
     """
-    Logout clears the access token cookie
+    Logout clears the access token cookie and removes the refresh token
+    from the database.
     """
-    response.delete_cookie("access_token")
-    return
+    stmt = get_user_by_cognito_id(cognito_id)
+    user = session.execute(stmt).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.cognito_refresh_token = None
+    session.commit()
+    response.delete_cookie(key="access_token")
+    return None
 
 
 @router.get("/me")
