@@ -19,15 +19,20 @@ class PlaidManager:
     Singleton class to manage the Plaid API client
     """
 
-    client: plaid_api.PlaidApi = None
+    _client: plaid_api.PlaidApi | None = None
 
     def __init__(self) -> None:
+        if self._client:
+            return
         self.initialise_plaid_client()
 
-    def initialise_plaid_client(self) -> None:
-        if PlaidManager.client is not None:
-            return
+    @staticmethod
+    def _get_client() -> plaid_api.PlaidApi:
+        if not PlaidManager._client:
+            raise ValueError("Plaid client is not intialised")
+        return PlaidManager._client
 
+    def initialise_plaid_client(self) -> None:
         client_id = os.getenv("PLAID_CLIENT_ID")
         secret = os.getenv("PLAID_SECRET")
 
@@ -44,7 +49,7 @@ class PlaidManager:
             },
         )
         api_client = plaid.ApiClient(configuration)
-        PlaidManager.client = plaid_api.PlaidApi(api_client)
+        PlaidManager._client = plaid_api.PlaidApi(api_client)
 
     def get_link_token(self) -> str:
         request = LinkTokenCreateRequest(
@@ -54,12 +59,12 @@ class PlaidManager:
             country_codes=[CountryCode("GB")],
             language="en",
         )
-        response: dict[str, str] = PlaidManager.client.link_token_create(request)
+        response: dict[str, str] = PlaidManager._get_client().link_token_create(request)
         return response["link_token"]
 
     def exchange_public_token(self, public_token: str) -> str:
         request = ItemPublicTokenExchangeRequest(public_token=public_token)
-        response = PlaidManager.client.item_public_token_exchange(request)
+        response = PlaidManager._get_client().item_public_token_exchange(request)
         if not isinstance(access_token := response.get("access_token"), str):
             raise PlaidError("Access token not found in Plaid response")
         return access_token
@@ -67,9 +72,9 @@ class PlaidManager:
     def get_account_balances(self, access_token: str) -> list[PlaidAccount]:
         request = AccountsBalanceGetRequest(access_token=access_token)
         try:
-            response = PlaidManager.client.accounts_balance_get(request)
-        except plaid.ApiException as e:
-            body = json.loads(e.body)
+            response = PlaidManager._get_client().accounts_balance_get(request)
+        except plaid.ApiException as err:
+            body = json.loads(err.body)
             if body.get("error_code") == "INVALID_ACCESS_TOKEN":
                 raise InvalidAccessTokenError()
             raise PlaidError(body["error_message"])
