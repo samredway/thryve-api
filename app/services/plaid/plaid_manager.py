@@ -72,6 +72,7 @@ class PlaidManager:
             body = json.loads(e.body)
             if body.get("error_code") == "INVALID_ACCESS_TOKEN":
                 raise InvalidAccessTokenError()
+            raise PlaidError(body["error_message"])
         accounts = response["accounts"]
         return [
             # Note using the external schema class internally here to avoid

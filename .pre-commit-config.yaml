@@ -9,11 +9,3 @@ repos:
     rev: 3.9.2  # Use the latest stable version
     hooks:
       - id: flake8
-
-  - repo: local
-    hooks:
-      - id: pytest
-        name: Run pytest on ./test/
-        entry: pytest ./test/
-        language: system
-        types: [python]

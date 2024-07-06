@@ -1,6 +1,8 @@
 import os
 
-from dotenv import load_dotenv
+# Load environment variables
+from app import env  # noqa: F401
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,8 +19,6 @@ from app.models.asset import Asset  # noqa: F401
 CLIENT_DOMAIN = os.environ.get("CLIENT_DOMAIN")
 
 Base.metadata.create_all(bind=engine)
-
-load_dotenv()
 
 app = FastAPI()
 
