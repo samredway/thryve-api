@@ -11,12 +11,17 @@ from app.routes.auth import router as auth_router
 from app.routes.plaid import router as plaid_router
 from app.routes.assets import router as assets_router
 from app.models.base import Base
+from app.exceptions import ConfigurationError
 
 # import all models to create tables TODO: use alembic
 from app.models.user import User  # noqa: F401
 from app.models.asset import Asset  # noqa: F401
 
-CLIENT_DOMAIN = os.environ.get("CLIENT_DOMAIN")
+CLIENT_DOMAIN = os.environ.get("CLIENT_DOMAIN", "")
+
+if not CLIENT_DOMAIN:
+    raise ConfigurationError("CLIENT_DOMAIN not set")
+
 
 Base.metadata.create_all(bind=engine)
 

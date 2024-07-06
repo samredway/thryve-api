@@ -14,6 +14,6 @@ repos:
     hooks:
       - id: pytest
         name: Run pytest
-        entry: pytest
+        entry: pytest ./test --disable-warnings
         language: system
         types: [python]
