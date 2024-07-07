@@ -16,7 +16,11 @@ from app.services.plaid.exceptions import InvalidAccessTokenError, PlaidError
 
 class PlaidManager:
     """
-    Singleton class to manage the Plaid API client
+    PlaidManager is a state manager designed to hold a single instance of the plaid client across
+    mutliple runs without rehitting the plaid api.
+
+    At some point we might want to have a more organised results cache and limit hits on the balance
+    endpoint as these are PAYG access.
     """
 
     _client: plaid_api.PlaidApi | None = None
