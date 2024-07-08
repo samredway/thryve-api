@@ -1,7 +1,7 @@
-from app.exceptions import EnWorthError
+from app.exceptions import ThryveError
 
 
-class AuthError(EnWorthError):
+class AuthError(ThryveError):
     pass
 
 

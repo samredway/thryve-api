@@ -11,13 +11,14 @@ class AssetType(StrEnum):
     stocks = "stocks"
     property = "property"
     cash = "cash"
+    loan = "loan"
     other = "other"
 
 
 class AssetBase(BaseSchema):
     name: str = Field(..., min_length=1, max_length=64)
     type: AssetType
-    value: Decimal = Field(..., gt=0)
+    value: Decimal
 
 
 class Asset(AssetBase):

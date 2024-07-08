@@ -22,7 +22,6 @@ CLIENT_DOMAIN = os.environ.get("CLIENT_DOMAIN", "")
 if not CLIENT_DOMAIN:
     raise ConfigurationError("CLIENT_DOMAIN not set")
 
-
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()

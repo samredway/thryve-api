@@ -1,6 +1,6 @@
-class EnWorthError(Exception):
+class ThryveError(Exception):
     pass
 
 
-class ConfigurationError(EnWorthError):
+class ConfigurationError(ThryveError):
     pass

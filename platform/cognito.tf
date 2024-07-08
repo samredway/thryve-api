@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_cognito_user_pool" "user_pool" {
-  name = "local-dev-enworth-user-pool"
+  name = "local-dev-thryve-user-pool"
 
   # Password policy
   password_policy {
@@ -82,7 +82,7 @@ resource "aws_cognito_user_pool" "user_pool" {
 }
 
 resource "aws_cognito_user_pool_client" "user_pool_client" {
-  name                                 = "local-dev-enworth-user-pool-client"
+  name                                 = "local-dev-thryve-user-pool-client"
   user_pool_id                         = aws_cognito_user_pool.user_pool.id
   callback_urls                        = ["http://localhost:5173/auth-callback"]
   allowed_oauth_flows_user_pool_client = true
