@@ -3,19 +3,11 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.services.aws.aws_manager import get_db_credentials
 from app.exceptions import ConfigurationError
 
 env = os.getenv("ENV")
-
-if env == "prod":
-    db_creds = get_db_credentials()
-    db_user = db_creds.username
-    db_pass = db_creds.password
-else:
-    db_user = os.getenv("DB_USER", "")
-    db_pass = os.getenv("DB_PASS", "")
-
+db_user = os.getenv("DB_USER", "")
+db_pass = os.getenv("DB_PASS", "")
 db_url = os.getenv("DB_URL")
 
 if not db_user and db_pass and db_url:
