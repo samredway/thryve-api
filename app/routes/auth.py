@@ -51,7 +51,9 @@ def login(
     user = create_or_update_user_tokens(cognito_id, tokens, session)
 
     # set the access token as an httpOnly cookie
-    response.set_cookie(key="access_token", value=tokens.access_token, httponly=True)
+    response.set_cookie(
+        key="access_token", value=tokens.access_token, httponly=True, samesite=None
+    )
 
     return LoginPostResponse.model_validate({"user": asdict(user)})
 
