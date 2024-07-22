@@ -49,10 +49,10 @@ def login(
 
     # create or update user in db with cognito username, email and refresh token
     user = create_or_update_user_tokens(cognito_id, tokens, session)
-
+    
     # set the access token as an httpOnly cookie
     response.set_cookie(
-        key="access_token", value=tokens.access_token, httponly=True, samesite=None
+        key="access_token", value=tokens.access_token, httponly=True, samesite="none", secure=True
     )
 
     return LoginPostResponse.model_validate({"user": asdict(user)})
@@ -74,7 +74,11 @@ def logout(
         raise HTTPException(status_code=404, detail="User not found")
     user.cognito_refresh_token = None
     session.commit()
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(
+       key="access_token",
+       samesite="none",
+       secure=True
+    )
     return None
 
 
